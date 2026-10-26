@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Slips">
+<meta name="theme-color" content="#141413">
+<title>Slips</title>
+<style>
+  :root {
+    --bg: #f4f2ee; --card: #ffffff; --ink: #1d1d1b;
+    --muted: #77736b; --line: #e3dfd7;
+    --accent: #1f6f5c; --accent-ink: #ffffff;
+    --personal: #8a5a2b; --split: #4b5ea8;
+    --danger: #b3261e;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141413; --card: #1f1f1d; --ink: #f0eee9;
+      --muted: #9a968d; --line: #2f2e2b;
+      --accent: #3fae8f; --accent-ink: #0d1f1a;
+      --personal: #d39a5f; --split: #8fa0e6;
+    }
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); }
+  body {
+    font: 16px/1.4 -apple-system, BlinkMacSystemFont,
+      "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+    padding: max(16px, env(safe-area-inset-top)) 16px
+      calc(110px + env(safe-area-inset-bottom));
+  }
+  header {
+    display: flex; align-items: baseline;
+    justify-content: space-between; margin: 4px 2px 14px;
+  }
+  h1 { font-size: 28px; margin: 0; letter-spacing: -0.5px; }
+  header a { color: var(--muted); font-size: 14px; text-decoration: none; }
+  .card {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 18px; padding: 14px; margin-bottom: 12px;
+  }
+  .label {
+    font-size: 12px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.6px; color: var(--muted); margin: 0 2px 8px;
+  }
+  .shoot { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; }
+  .btn {
+    appearance: none; border: 0; border-radius: 14px;
+    font: inherit; font-weight: 600; padding: 16px 12px;
+    cursor: pointer; display: flex; align-items: center;
+    justify-content: center; gap: 8px;
+  }
+  .btn-primary { background: var(--accent); color: var(--accent-ink); }
+  .btn-ghost {
+    background: transparent; color: var(--ink);
+    border: 1px solid var(--line);
+  }
+  .btn svg { width: 22px; height: 22px; }
+  .thumbs {
+    display: flex; gap: 8px; overflow-x: auto;
+    margin-top: 10px; padding-bottom: 2px;
+  }
+  .thumbs:empty { display: none; }
+  .thumb {
+    position: relative; flex: 0 0 auto; width: 76px; height: 100px;
+    border-radius: 10px; overflow: hidden; border: 1px solid var(--line);
+  }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .thumb button {
+    position: absolute; top: 4px; right: 4px; width: 24px; height: 24px;
+    border-radius: 50%; border: 0; background: rgba(0,0,0,.6);
+    color: #fff; font-size: 15px; line-height: 24px; padding: 0;
+  }
+  .seg {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    background: var(--bg); border-radius: 12px; padding: 4px; gap: 4px;
+  }
+  .seg button {
+    border: 0; background: transparent; color: var(--muted);
+    font: inherit; font-weight: 600; padding: 10px 4px;
+    border-radius: 9px;
+  }
+  .seg button.on { background: var(--card); color: var(--ink);
+    box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+  .seg button.on[data-v="Business"] { color: var(--accent); }
+  .seg button.on[data-v="Personal"] { color: var(--personal); }
+  .seg button.on[data-v="Split"] { color: var(--split); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .chip {
+    border: 1px solid var(--line); background: transparent;
+    color: var(--ink); font: inherit; font-size: 15px;
+    padding: 8px 13px; border-radius: 999px;
+  }
+  .chip.on { background: var(--ink); color: var(--card); border-color: var(--ink); }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  input, textarea {
+    width: 100%; font: inherit; color: var(--ink);
+    background: var(--bg); border: 1px solid var(--line);
+    border-radius: 12px; padding: 12px; outline: none;
+    -webkit-appearance: none;
+  }
+  input:focus, textarea:focus { border-color: var(--accent); }
+  input[type="date"] { min-height: 48px; }
+  textarea { min-height: 96px; resize: vertical; }
+  .hint { color: var(--muted); font-size: 13px; margin: 6px 2px 0; }
+  .bar {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    background: linear-gradient(to top, var(--bg) 70%, transparent);
+  }
+  .bar .btn { width: 100%; font-size: 18px; padding: 18px; }
+  .btn:disabled { opacity: .5; }
+  .recent-item {
+    display: flex; justify-content: space-between; gap: 10px;
+    padding: 10px 2px; border-top: 1px solid var(--line);
+    color: inherit; text-decoration: none;
+  }
+  .recent-item:first-of-type { border-top: 0; }
+  .recent-item .t { font-weight: 600; }
+  .recent-item .s {
+    color: var(--muted); font-size: 14px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    max-width: 62vw;
+  }
+  .recent-item .a { font-weight: 600; white-space: nowrap; }
+  .pill { font-size: 12px; font-weight: 600; }
+  .pill.Business { color: var(--accent); }
+  .pill.Personal { color: var(--personal); }
+  .pill.Split { color: var(--split); }
+  .empty { color: var(--muted); font-size: 14px; padding: 4px 2px; }
+  .toast {
+    position: fixed; left: 50%; top: max(14px, env(safe-area-inset-top));
+    transform: translate(-50%, -150%); transition: transform .25s ease;
+    background: var(--ink); color: var(--card); padding: 12px 18px;
+    border-radius: 999px; font-weight: 600; font-size: 15px;
+    z-index: 10; max-width: 90vw; text-align: center;
+  }
+  .toast.show { transform: translate(-50%, 0); }
+  .toast.err { background: var(--danger); color: #fff; }
+  .hidden { display: none !important; }
+  .setup {
+    position: fixed; inset: 0; z-index: 20; background: var(--bg);
+    padding: max(60px, env(safe-area-inset-top)) 16px 16px;
+  }
+  .note-head {
+    display: flex; align-items: center;
+    justify-content: space-between; margin-bottom: 8px;
+  }
+  .note-head .label { margin: 0 2px; }
+  .mic {
+    display: flex; align-items: center; gap: 6px;
+    border: 1px solid var(--line); background: var(--bg);
+    color: var(--ink); font: inherit; font-weight: 600;
+    font-size: 15px; padding: 9px 14px; border-radius: 999px;
+  }
+  .mic svg { width: 18px; height: 18px; }
+  .mic.live {
+    background: var(--danger); border-color: var(--danger);
+    color: #fff; animation: pulse 1.2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(179,38,30,.45); }
+    50% { box-shadow: 0 0 0 8px rgba(179,38,30,0); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Slips</h1>
+  <a id="folderLink" href="#" target="_blank">Open Drive</a>
+</header>
+
+<div class="card">
+  <div class="shoot">
+    <button class="btn btn-primary" id="shootBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+        <circle cx="12" cy="13" r="4"/>
+      </svg>
+      Shoot slip
+    </button>
+    <button class="btn btn-ghost" id="libBtn">From photos</button>
+  </div>
+  <input type="file" id="camIn" accept="image/*"
+    capture="environment" class="hidden">
+  <input type="file" id="libIn" accept="image/*" multiple class="hidden">
+  <div class="thumbs" id="thumbs"></div>
+  <p class="hint" id="photoHint">Long slip? Shoot it in parts, they save together.</p>
+</div>
+
+<div class="card">
+  <div class="label">What is it</div>
+  <div class="seg" id="typeSeg">
+    <button data-v="Business" class="on">Business</button>
+    <button data-v="Personal">Personal</button>
+    <button data-v="Split">Split</button>
+  </div>
+  <div class="chips" id="chips"></div>
+</div>
+
+<div class="card">
+  <div class="row">
+    <div>
+      <div class="label">Amount (optional)</div>
+      <input id="amount" inputmode="decimal" placeholder="0,00"
+        autocomplete="off">
+    </div>
+    <div>
+      <div class="label">Date</div>
+      <input id="date" type="date">
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="note-head">
+    <div class="label">Note</div>
+    <button class="mic" id="micBtn" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="2" width="6" height="12" rx="3"/>
+        <path d="M5 10a7 7 0 0 0 14 0M12 17v5M8 22h8"/>
+      </svg>
+      <span id="micLabel">Speak</span>
+    </button>
+  </div>
+  <textarea id="note"
+    placeholder="Tap Speak and say what it's for"></textarea>
+  <p class="hint">For Split, say which items are which.</p>
+</div>
+
+<div class="card">
+  <div class="label">Recent</div>
+  <div id="recent"><div class="empty">Loading...</div></div>
+</div>
+
+<div class="bar">
+  <button class="btn btn-primary" id="saveBtn">Save slip</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="setup hidden" id="setup">
+  <div class="card">
+    <div class="label">One-time setup</div>
+    <p class="hint" style="margin:0 2px 10px">Paste the script web app link and your key.</p>
+    <input id="setUrl" placeholder="https://script.google.com/macros/s/.../exec"
+      autocomplete="off" autocapitalize="off" spellcheck="false">
+    <div style="height:10px"></div>
+    <input id="setKey" placeholder="Key" autocomplete="off"
+      autocapitalize="off" spellcheck="false">
+    <div style="height:12px"></div>
+    <button class="btn btn-primary" id="setSave" style="width:100%">Connect</button>
+  </div>
+</div>
+
+<script>
+  var TAGS = ['Rondebosch Vista',
+    'Mountainview Villa'];
+
+  function cfg(k, v) {
+    try {
+      if (v === undefined) return localStorage.getItem('slips_' + k) || '';
+      localStorage.setItem('slips_' + k, v);
+    } catch (e) { return ''; }
+  }
+
+  function post(body) {
+    body.key = cfg('key');
+    // text/plain keeps this a simple request Google accepts.
+    return fetch(cfg('url'), {
+      method: 'POST',
+      body: JSON.stringify(body),
+      redirect: 'follow'
+    }).then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (!j || j.ok === false) {
+          throw new Error((j && j.error) || 'Server error');
+        }
+        return j;
+      });
+  }
+
+  function call(fn, arg) {
+    if (fn === 'saveSlip') return post({ action: 'save', slip: arg });
+    if (fn === 'getRecent') {
+      return post({ action: 'recent' }).then(function (j) { return j.rows; });
+    }
+    if (fn === 'getFolderUrl') {
+      return post({ action: 'folder' }).then(function (j) { return j.url; });
+    }
+    return Promise.reject(new Error('Unknown call'));
+  }
+
+  var state = { images: [], type: 'Business', tag: '' };
+  var $ = function (id) { return document.getElementById(id); };
+
+  function today() {
+    var d = new Date();
+    var m = String(d.getMonth() + 1).padStart(2, '0');
+    var day = String(d.getDate()).padStart(2, '0');
+    return d.getFullYear() + '-' + m + '-' + day;
+  }
+
+  function toast(msg, isErr) {
+    var t = $('toast');
+    t.textContent = msg;
+    t.className = 'toast show' + (isErr ? ' err' : '');
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(function () {
+      t.className = 'toast' + (isErr ? ' err' : '');
+    }, isErr ? 4500 : 2200);
+  }
+
+  // Shrink photos on the phone so uploads are quick on mobile data.
+  function compress(file) {
+    return new Promise(function (resolve, reject) {
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function () {
+        var max = 2000;
+        var w = img.naturalWidth, h = img.naturalHeight;
+        var s = Math.min(1, max / Math.max(w, h));
+        w = Math.round(w * s); h = Math.round(h * s);
+        var c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        var ctx = c.getContext('2d');
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        resolve(c.toDataURL('image/jpeg', 0.82));
+      };
+      img.onerror = function () {
+        URL.revokeObjectURL(url);
+        reject(new Error('Could not read that photo'));
+      };
+      img.src = url;
+    });
+  }
+
+  function renderThumbs() {
+    var box = $('thumbs');
+    box.innerHTML = '';
+    state.images.forEach(function (src, i) {
+      var d = document.createElement('div');
+      d.className = 'thumb';
+      d.innerHTML = '<img alt=""><button aria-label="Remove">&times;</button>';
+      d.querySelector('img').src = src;
+      d.querySelector('button').onclick = function () {
+        state.images.splice(i, 1);
+        renderThumbs();
+      };
+      box.appendChild(d);
+    });
+    $('shootBtn').lastChild.textContent =
+      state.images.length ? ' Add another' : ' Shoot slip';
+  }
+
+  function addFiles(files) {
+    var list = Array.prototype.slice.call(files || []);
+    return Promise.all(list.map(compress)).then(function (srcs) {
+      state.images = state.images.concat(srcs);
+      renderThumbs();
+    }).catch(function (e) { toast(e.message, true); });
+  }
+
+  $('shootBtn').onclick = function () { $('camIn').click(); };
+  $('libBtn').onclick = function () { $('libIn').click(); };
+  $('camIn').onchange = function (e) {
+    addFiles(e.target.files).then(function () { e.target.value = ''; });
+  };
+  $('libIn').onchange = function (e) {
+    addFiles(e.target.files).then(function () { e.target.value = ''; });
+  };
+
+  // Business / Personal / Split
+  Array.prototype.forEach.call(
+    $('typeSeg').querySelectorAll('button'),
+    function (b) {
+      b.onclick = function () {
+        state.type = b.dataset.v;
+        $('typeSeg').querySelectorAll('button').forEach(function (x) {
+          x.classList.toggle('on', x === b);
+        });
+      };
+    });
+
+  // What it's for
+  function renderChips() {
+    var box = $('chips');
+    box.innerHTML = '';
+    TAGS.forEach(function (t) {
+      var c = document.createElement('button');
+      c.className = 'chip' + (state.tag === t ? ' on' : '');
+      c.textContent = t;
+      c.onclick = function () {
+        state.tag = state.tag === t ? '' : t;
+        renderChips();
+      };
+      box.appendChild(c);
+    });
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+
+  function loadRecent() {
+    call('getRecent').then(function (rows) {
+      var box = $('recent');
+      if (!rows || !rows.length) {
+        box.innerHTML = '<div class="empty">No slips yet.</div>';
+        return;
+      }
+      box.innerHTML = rows.map(function (r) {
+        var title = esc(r.tag || r.type || 'Slip');
+        var sub = esc(r.date) + (r.note ? ' &middot; ' + esc(r.note) : '');
+        var amt = r.amount ? 'R ' + esc(r.amount) : '';
+        var href = r.url ? esc(r.url) : '#';
+        return '<a class="recent-item" target="_blank" href="' + href + '">' +
+          '<div><div class="t">' + title +
+          ' <span class="pill ' + esc(r.type) + '">' + esc(r.type) +
+          '</span></div><div class="s">' + sub + '</div></div>' +
+          '<div class="a">' + amt + '</div></a>';
+      }).join('');
+    }).catch(function () {
+      $('recent').innerHTML = '<div class="empty">Could not load.</div>';
+    });
+  }
+
+  function reset() {
+    state.images = [];
+    state.tag = '';
+    $('amount').value = '';
+    $('note').value = '';
+    $('date').value = today();
+    renderThumbs();
+    renderChips();
+  }
+
+  $('saveBtn').onclick = function () {
+    var note = $('note').value.trim();
+    if (!state.images.length && !note) {
+      toast('Add a photo or a note first', true);
+      return;
+    }
+    var btn = $('saveBtn');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+    var payload = {
+      date: $('date').value || today(),
+      amount: $('amount').value.trim(),
+      type: state.type,
+      tag: state.tag,
+      note: note,
+      images: state.images.map(function (s) {
+        return s.split(',')[1];
+      })
+    };
+    call('saveSlip', payload).then(function (res) {
+      var n = res && res.photos ? res.photos : 0;
+      toast('Saved' + (n ? ' with ' + n + ' photo' + (n > 1 ? 's' : '') : ''));
+      reset();
+      loadRecent();
+    }).catch(function (e) {
+      // Keep everything on screen so a retry loses nothing.
+      toast('Not saved: ' + (e && e.message ? e.message : 'no signal?') +
+        ' Tap Save to retry.', true);
+    }).finally(function () {
+      btn.disabled = false;
+      btn.textContent = 'Save slip';
+    });
+  };
+
+  // Mic button: browser speech-to-text into the note.
+  (function () {
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    var btn = $('micBtn'), label = $('micLabel'), note = $('note');
+    var rec = null, live = false, base = '';
+
+    function stop() {
+      live = false;
+      btn.classList.remove('live');
+      label.textContent = 'Speak';
+    }
+
+    function fallback(msg) {
+      stop();
+      toast(msg, true);
+      note.focus();
+    }
+
+    btn.onclick = function () {
+      if (!SR) {
+        fallback('Mic not available in this browser. ' +
+          'Open in Safari, or use the keyboard mic.');
+        return;
+      }
+      if (live && rec) { rec.stop(); return; }
+
+      rec = new SR();
+      rec.lang = 'en-ZA';
+      rec.interimResults = true;
+      rec.continuous = true;
+      base = note.value.trim();
+      if (base) base += ' ';
+
+      rec.onresult = function (e) {
+        var text = '';
+        for (var i = 0; i < e.results.length; i++) {
+          text += e.results[i][0].transcript;
+        }
+        note.value = base + text.trim();
+      };
+      rec.onerror = function (e) {
+        if (e.error === 'not-allowed' ||
+            e.error === 'service-not-allowed') {
+          fallback('Mic blocked. Allow it in settings, ' +
+            'or use the keyboard mic.');
+        } else if (e.error !== 'no-speech' &&
+                   e.error !== 'aborted') {
+          fallback('Mic error: ' + e.error);
+        }
+      };
+      rec.onend = stop;
+
+      try {
+        rec.start();
+        live = true;
+        btn.classList.add('live');
+        label.textContent = 'Stop';
+      } catch (err) {
+        fallback('Could not start the mic.');
+      }
+    };
+  })();
+
+  function boot() {
+    loadRecent();
+    call('getFolderUrl').then(function (u) {
+      if (u) $('folderLink').href = u;
+    }).catch(function () {});
+  }
+
+  // Link can carry setup: index.html#url=...&key=...
+  (function () {
+    var m = location.hash.slice(1).split('&').reduce(function (a, p) {
+      var kv = p.split('='); if (kv[0]) a[kv[0]] = decodeURIComponent(kv[1] || '');
+      return a;
+    }, {});
+    if (m.url && m.key) {
+      cfg('url', m.url); cfg('key', m.key);
+      history.replaceState(null, '', location.pathname);
+    }
+  })();
+
+  $('setSave').onclick = function () {
+    var u = $('setUrl').value.trim(), k = $('setKey').value.trim();
+    if (!/^https:\/\/script\.google\.com\//.test(u) || !k) {
+      toast('Paste the script link and key', true); return;
+    }
+    cfg('url', u); cfg('key', k);
+    post({ action: 'folder' }).then(function () {
+      $('setup').classList.add('hidden');
+      toast('Connected'); boot();
+    }).catch(function (e) {
+      toast('Could not connect: ' + e.message, true);
+    });
+  };
+
+  $('date').value = today();
+  renderChips();
+  if (!cfg('url') || !cfg('key')) {
+    $('setup').classList.remove('hidden');
+  } else {
+    boot();
+  }
+</script>
+</body>
+</html>
